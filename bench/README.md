@@ -32,7 +32,8 @@ summary line.
 ### Dependencies
 
 - All scripts: Python 3 standard library only.
-- `conv_speed.py` additionally needs the `tokenizers` package (`pip install tokenizers`) and the model's
+- `conv_speed.py` additionally needs the `tokenizers` package (`pip install tokenizers==0.23.3` — pin the
+  version you benchmark with, so a later release cannot silently change what you measure) and the model's
   `tokenizer.json` (pass `--tokenizer PATH`) to count tokens per streamed chunk.
 - `session_probe.py`, `fair_probe.py` and `grow_probe.py` import helpers from `longctx.py` (and
   `reuse_check.py`); keep the files together in this directory.

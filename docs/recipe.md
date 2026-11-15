@@ -38,6 +38,11 @@ A quick cross-card sanity check after boot: a bf16 matmul on each card and a dev
 every pair must match a CPU reference. Until `iommu=pt` is in effect, multi-GPU work is unsafe; a single
 card is fine, and NCCL can be forced through host memory with `NCCL_P2P_DISABLE=1` as a stopgap.
 
+> **Security trade-off:** `iommu=pt` puts devices in DMA pass-through, which gives up the IOMMU's
+> per-device DMA isolation. On a single-tenant machine with trusted PCIe devices this is the normal
+> choice, but it is a reduction in device isolation and not only a correctness fix — worth knowing if
+> this box ever gains untrusted devices or multi-tenant use.
+
 Other platform notes:
 - Confirm the PCIe/NUMA layout with `nvidia-smi topo -m` (expect `NODE` within a socket, `SYS` across).
 - No container, no root, no NVLink are required. The engine runs as an ordinary user.
@@ -99,6 +104,10 @@ on loopback (`127.0.0.1`). The served configuration:
   262,144 window with the BF16 cache.
 - Serve on a **local port** — the engine's own OpenAI-compatible server, e.g. `127.0.0.1:8000`. There is no
   gateway or key layer in this recipe; put one in front yourself if you need auth.
+  ⚠️ **Do not bind this server to `0.0.0.0` (or any public interface) without adding authentication.** The
+  engine's server has no built-in auth, rate limiting or TLS: anyone who can reach the port gets full,
+  unauthenticated use of the model, and `/health` discloses usage counters. If the endpoint must be
+  reachable off-box, put a reverse proxy with an API-key check (and TLS) in front first.
 
 ### Reasoning effort = high
 
